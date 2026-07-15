@@ -9,7 +9,7 @@ component, one command in front.
 flowchart LR
     IN[/tickets.csv/] --> N[Normalizer\ntag compression\nsubject view]
     N --> R{Router\nreference set?\nsim >= 0.75?}
-    REF[/labeled.csv\nreference set/] --> M
+    REF[/labeled.csv or trained index\nzerolinc train/] --> M
     R -->|yes| M[Instance-Memory Engine\nQwen3-Embedding-0.6B\nk-NN weighted vote]
     R -->|no / fallback| Z[Zero-Shot Engine\nGLiClass / DeBERTa-NLI\nx Verbalizer, 12 hypotheses]
     M -->|below threshold| Z

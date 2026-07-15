@@ -18,17 +18,20 @@ uv sync
 
 ## Use
 
-Day zero, no labeled data:
+Day zero, no labeled data (zero-shot engine):
 
 ```bash
-uv run zerolinc --input tickets.csv --engine zeroshot --output predictions.csv
+uv run zerolinc classify --input tickets.csv --engine zeroshot --output predictions.csv
 ```
 
-With your labeled tickets as a reference set (recommended once you have a few dozen):
+Once you have labeled tickets, **train** the reference index once (embeddings only, no gradient training) and classify with it:
 
 ```bash
-uv run zerolinc --input tickets.csv --memory labeled.csv --output predictions.csv
+uv run zerolinc train --memory labeled.csv --model-out soc_index.npz
+uv run zerolinc classify --input tickets.csv --model soc_index.npz --output predictions.csv
 ```
+
+For ad-hoc runs, `--memory labeled.csv` also works directly on `classify` (embeds the reference set on the fly).
 
 - `tickets.csv` needs a text column (default name `conteudo`; override with `--text-column`).
 - `labeled.csv` needs `incidente_id`, `conteudo`, and `categoria` (CAT1..CAT12) columns.

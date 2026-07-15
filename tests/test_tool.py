@@ -40,3 +40,20 @@ def test_tool_load_texts(tmp_path):
         f, index=False)
     items = _load_texts(f)
     assert items[0].incident_id == "A1" and "<URL>" in items[0].text
+
+
+def test_train_and_load_index(tmp_path, monkeypatch):
+    import numpy as np
+    import zerolinc.memory_engine as me
+    import pandas as pd
+    f = tmp_path / "labeled.csv"
+    pd.DataFrame({"incidente_id": ["A", "B"], "conteudo": ["texto um", "texto dois"],
+                  "categoria": ["CAT5", "CAT3"]}).to_csv(f, index=False)
+    monkeypatch.setattr(me, "embed_texts",
+                        lambda m, texts, **kw: np.eye(2, 4, dtype="float32"))
+    out = tmp_path / "idx.npz"
+    info = me.build_index(f, "fake/model", out)
+    assert info["n_references"] == 2 and out.exists()
+    idx = me.load_index(out)
+    assert idx["labels"] == ["CAT5", "CAT3"] and idx["model_id"] == "fake/model"
+    assert idx["embeddings"].shape == (2, 4)

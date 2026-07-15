@@ -35,3 +35,39 @@ def _vote(sims_row, labels: list[str], candidate_idx: list[int], k: int) -> str:
     for j in top:
         weight[labels[j]] += float(sims_row[j])
     return max(sorted(weight), key=lambda lab: weight[lab])
+
+
+def build_index(memory_path, model_id: str, out_path) -> dict:
+    """``train``: embed a labeled CSV once and persist it as a reusable index.
+
+    No gradient updates take place; training the tool means building the
+    reference index (embeddings + labels) so later ``classify`` calls skip
+    re-embedding the reference set.
+    """
+    import numpy as np
+
+    from .normalizer import load_incidents
+
+    memory = load_incidents(memory_path)
+    emb = embed_texts(model_id, [m.text for m in memory])
+    np.savez_compressed(
+        out_path,
+        embeddings=emb.astype("float16"),
+        labels=np.array([m.label for m in memory]),
+        ids=np.array([m.incident_id for m in memory]),
+        model_id=np.array([model_id]),
+    )
+    return {"n_references": len(memory), "model_id": model_id, "path": str(out_path)}
+
+
+def load_index(path):
+    """Load a persisted reference index built by build_index."""
+    import numpy as np
+
+    data = np.load(path, allow_pickle=False)
+    return {
+        "embeddings": data["embeddings"].astype("float32"),
+        "labels": [str(x) for x in data["labels"]],
+        "ids": [str(x) for x in data["ids"]],
+        "model_id": str(data["model_id"][0]),
+    }

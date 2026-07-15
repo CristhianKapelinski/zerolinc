@@ -75,30 +75,39 @@ def classify_tickets(
     sim_threshold: float = DEFAULT_SIM_THRESHOLD,
     text_column: str = "conteudo",
     batch_size: int = 8,
+    index_path: str | Path | None = None,
 ) -> list[ToolPrediction]:
     items = _load_texts(input_path, text_column)
 
-    if engine in ("zeroshot", "zeroshot-max") or (engine == "auto" and not memory_path):
+    has_refs = bool(memory_path or index_path)
+    if engine in ("zeroshot", "zeroshot-max") or (engine == "auto" and not has_refs):
         return _zeroshot(items, engine if engine.startswith("zeroshot") else "zeroshot", batch_size)
 
-    if not memory_path:
-        raise ValueError("engine 'knn' requires --memory with labeled tickets")
-    memory = load_incidents(memory_path)
-    mem_labels = [m.label for m in memory]
-
-    emb_all = embed_texts(EMBED_MODEL, [m.text for m in memory] + [i.text for i in items])
-    mem_emb, item_emb = emb_all[: len(memory)], emb_all[len(memory):]
+    if not has_refs:
+        raise ValueError("engine 'knn' requires --memory or a trained --model index")
+    if index_path:
+        from .memory_engine import load_index
+        index = load_index(index_path)
+        mem_labels = index["labels"]
+        mem_emb = index["embeddings"]
+        item_emb = embed_texts(index["model_id"], [i.text for i in items])
+    else:
+        memory = load_incidents(memory_path)
+        mem_labels = [m.label for m in memory]
+        emb_all = embed_texts(EMBED_MODEL, [m.text for m in memory] + [i.text for i in items])
+        mem_emb, item_emb = emb_all[: len(memory)], emb_all[len(memory):]
     sims = item_emb @ mem_emb.T
 
     preds: list[ToolPrediction] = []
     fallback: list[int] = []
+    n_mem = len(mem_labels)
     for row_i, item in enumerate(items):
         top_sim = float(sims[row_i].max())
         if engine == "auto" and top_sim < sim_threshold:
             fallback.append(row_i)
             preds.append(None)  # type: ignore[arg-type]
             continue
-        label = _vote(sims[row_i], mem_labels, list(range(len(memory))), k)
+        label = _vote(sims[row_i], mem_labels, list(range(n_mem)), k)
         preds.append(ToolPrediction(item.incident_id, label, round(top_sim, 4), "knn"))
 
     if fallback:
