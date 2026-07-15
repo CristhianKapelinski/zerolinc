@@ -63,7 +63,11 @@ The paper makes three claims; each is one command that fetches the evaluation ar
 ## Claim #1 — Instance-memory engine reaches 90.8% mean test accuracy (main claim)
 
 - **Description:** with 89 labeled reference tickets and no training, the engine reaches 90.8% mean accuracy over 5 validation/test splits (range 89.2–92.5%), McNemar p<0.001 in every split. Runs the full protocol live. GPU fp16 embedding introduces small run-to-run variation (per-seed ±1–2 p.p., mean ±0.5 p.p.); the assertion band 88–93% absorbs it.
-- **Execution:** `./run_claim1.sh`
+- **Execution:**
+
+  ```bash
+  ./run_claim1.sh
+  ```
 - **Expected time:** ~5 min on GPU (first run: +2 min clone/sync/model download); ~15 min CPU-only
 - **Expected resources:** ~4 GB RAM, ~2 GB VRAM (GPU path), ~2 GB disk
 - **Expected result:** a box ending in
@@ -77,7 +81,11 @@ The paper makes three claims; each is one command that fetches the evaluation ar
 ## Claim #2 — Zero-shot engines reach up to 70.9% (protocol mean 68.8%)
 
 - **Description:** recomputes every metric of the 292-run study from committed per-ticket predictions and re-runs the 5-seed selection protocol. No GPU.
-- **Execution:** `./run_claim2.sh`
+- **Execution:**
+
+  ```bash
+  ./run_claim2.sh
+  ```
 - **Expected time:** ~3 min, CPU only
 - **Expected resources:** ~2 GB RAM, ~1 GB disk
 - **Expected result (deterministic):** a box ending in
@@ -92,7 +100,11 @@ The paper makes three claims; each is one command that fetches the evaluation ar
 ## Claim #3 — The default zero-shot engine costs seconds and under 3 Wh
 
 - **Description:** verifies the cost claim for the default engine over the 182-ticket corpus. Re-timed live when a GPU is present (`SKIP_LIVE=1 ./run_claim3.sh` forces the no-GPU path, which reads the committed run record). Wall-clock varies with hardware; the assertion is < 60 s and < 3 Wh.
-- **Execution:** `./run_claim3.sh`
+- **Execution:**
+
+  ```bash
+  ./run_claim3.sh
+  ```
 - **Expected time:** ~2 min on GPU; ~1 min no-GPU path
 - **Expected resources:** ~4 GB RAM, ~1 GB VRAM (live path)
 - **Expected result:** a box reporting wall-clock, Wh, VRAM, and accuracy, ending in `→  OK`
