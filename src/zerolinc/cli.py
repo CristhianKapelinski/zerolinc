@@ -39,11 +39,13 @@ def main(argv: list[str] | None = None) -> int:
     p_cls.add_argument("--text-column", default="conteudo",
                        help="text column of the input CSV (and of --memory)")
     p_cls.add_argument("--id-column", default="incidente_id",
-                       help="id column of the reference CSV")
+                       help="id column of the input and reference CSVs")
     p_cls.add_argument("--label-column", default="categoria",
                        help="label column of the reference CSV")
     p_cls.add_argument("--batch-size", type=int, default=8)
     p_cls.add_argument("--output", type=Path, default=Path("predictions.csv"))
+    p_cls.add_argument("--embedding-model", default="Qwen/Qwen3-Embedding-0.6B",
+                       help="embedding checkpoint for --memory runs")
 
     args = parser.parse_args(argv)
 
@@ -60,7 +62,8 @@ def main(argv: list[str] | None = None) -> int:
     preds = classify_tickets(args.input, args.memory, args.engine, args.k,
                              args.sim_threshold, args.text_column, args.batch_size,
                              index_path=args.model, id_column=args.id_column,
-                             label_column=args.label_column)
+                             label_column=args.label_column,
+                             embed_model=args.embedding_model)
     write_predictions(preds, args.output)
     engines = Counter(p.engine for p in preds)
     cats = Counter(p.category for p in preds)

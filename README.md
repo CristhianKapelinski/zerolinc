@@ -53,7 +53,7 @@ Everything runs locally: no telemetry, no external API calls (only Hugging Face 
 git clone https://github.com/CristhianKapelinski/zerolinc
 cd zerolinc
 curl -LsSf https://astral.sh/uv/install.sh | sh   # if uv is not installed
-uv sync                                            # ~3 min
+uv sync --extra dev                                # ~3 min
 ```
 
 # Minimal test

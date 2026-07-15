@@ -4,5 +4,5 @@
 # cost check (live if a GPU is present). One command, no manual steps.
 set -euo pipefail
 cd "$(dirname "$0")"
-[ -d benchmark ] || git clone -q https://github.com/CristhianKapelinski/zerolinc-benchmark benchmark
+[ -d benchmark ] || git clone -q ${ZEROLINC_BENCHMARK_REPO:-https://github.com/CristhianKapelinski/zerolinc-benchmark} benchmark
 cd benchmark && uv sync -q --extra dev && ./run_claim3.sh
