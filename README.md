@@ -1,10 +1,27 @@
 # ZeroLINC: Training-Free Local Classification of Security Incident Reports
 
-ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to the 12 NIST SP 800-61r3-derived categories locally, with no model training (no weights are ever updated; the `train` command only persists an embedding index) and no external API. Two engines behind one command: an **instance-memory engine** (similarity-weighted vote over previously labeled tickets) that reaches **90.8%** mean test accuracy with 89 labeled references, and a **zero-shot engine** (up to **70.9%**) for deployments with no labeled data. Classifying the whole evaluation corpus takes seconds and under 3 Wh on one GPU. This repository is the artifact of the paper *"ZeroLINC: Training-Free Local Classification of Security Incident Reports"* (SBSeg 2026, Salão de Ferramentas, Código Aberto).
+ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to the 12 NIST SP 800-61r3-derived categories locally, with no model training (no weights are ever updated; the `train` command only persists an embedding index) and no external API. Two engines in one command-line tool: an **instance-memory engine** (similarity-weighted vote over previously labeled tickets) that reaches **90.8%** mean test accuracy with 89 labeled references, and a **zero-shot engine** (up to **70.9%**) for deployments with no labeled data. Classifying the whole evaluation corpus takes seconds and under 3 Wh on one GPU. This repository is the artifact of the paper *"ZeroLINC: Training-Free Local Classification of Security Incident Reports"* (SBSeg 2026, Salão de Ferramentas, Código Aberto).
 
 # README structure
 
-[Considered seals](#considered-seals) · [Basic information](#basic-information) · [Dependencies](#dependencies) · [Security concerns](#security-concerns) · [Installation](#installation) · [Minimal test](#minimal-test) · [Experiments](#experiments) (Claims #1–#3) · [LICENSE](#license). Layout: `src/zerolinc/` (one module per architecture component: `normalizer.py`, `verbalizer.py`, `zeroshot_engine.py`, `memory_engine.py`, `router.py`, `cli.py`), `examples/` (sample input), `docs/architecture.md` (data-flow, module, and sequence diagrams), `run_claim{1,2,3}.sh` (one script per paper claim), `tests/`. The measurement study behind the tool lives in the companion repository [zerolinc-benchmark](https://github.com/CristhianKapelinski/zerolinc-benchmark); the claim scripts fetch it automatically.
+1. [Considered seals](#considered-seals)
+2. [Basic information](#basic-information)
+3. [Dependencies](#dependencies)
+4. [Security concerns](#security-concerns)
+5. [Installation](#installation)
+6. [Minimal test](#minimal-test)
+7. [Experiments](#experiments) (Claims #1–#3)
+8. [LICENSE](#license)
+
+Repository layout:
+
+- `src/zerolinc/`: one module per architecture component: `normalizer.py`, `verbalizer.py`, `zeroshot_engine.py`, `memory_engine.py`, `router.py`, `cli.py`
+- `examples/`: sample input
+- `docs/architecture.md`: data-flow, module, and sequence diagrams
+- `run_claim{1,2,3}.sh`: one script per paper claim
+- `tests/`: offline unit tests
+
+The measurement study behind the tool lives in the companion repository [zerolinc-benchmark](https://github.com/CristhianKapelinski/zerolinc-benchmark); the claim scripts fetch it automatically.
 
 # Considered seals
 

@@ -1,6 +1,6 @@
 # ZeroLINC architecture
 
-One module per component, matching the paper; one command in front.
+One module per component, matching the paper.
 
 ## Data flow
 
