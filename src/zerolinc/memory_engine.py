@@ -37,7 +37,10 @@ def vote(sims_row, labels: list[str], candidate_idx: list[int], k: int) -> str:
     return max(sorted(weight), key=lambda lab: weight[lab])
 
 
-def build_index(memory_path, model_id: str, out_path) -> dict:
+def build_index(memory_path, model_id: str, out_path,
+                text_column: str = "conteudo",
+                id_column: str = "incidente_id",
+                label_column: str = "categoria") -> dict:
     """``train``: embed a labeled CSV once and persist it as a reusable index.
 
     No gradient updates take place; training the tool means building the
@@ -48,7 +51,8 @@ def build_index(memory_path, model_id: str, out_path) -> dict:
 
     from .normalizer import load_incidents
 
-    memory = load_incidents(memory_path)
+    memory = load_incidents(memory_path, text_column=text_column,
+                            id_column=id_column, label_column=label_column)
     emb = embed_texts(model_id, [m.text for m in memory])
     np.savez_compressed(
         out_path,
