@@ -41,10 +41,13 @@ sequenceDiagram
     participant U as Operator
     participant C as cli
     participant R as router
+    participant N as normalizer
     participant M as memory_engine
     participant Z as zeroshot_engine
     U->>C: zerolinc classify --input tickets.csv --model soc.npz
     C->>R: classify_tickets
+    R->>N: normalize tickets (tag compression, subject view)
+    N-->>R: normalized texts
     R->>M: embed incoming tickets
     loop each ticket
         alt nearest similarity >= 0.75
