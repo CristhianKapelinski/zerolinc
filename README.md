@@ -1,6 +1,6 @@
 # ZeroLINC — Training-Free Local Classification of Security Incident Reports
 
-ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to the 12 NIST SP 800-61r3-derived categories locally, with no model training and no external API. Two engines behind one command: an **instance-memory engine** (similarity-weighted vote over previously labeled tickets) that reaches **90.5%** mean test accuracy with 89 labeled references, and a **zero-shot engine** (up to **70.9%**) for deployments with no labeled data. Classifying the whole evaluation corpus takes seconds and under 3 Wh on one GPU. This repository is the artifact of the paper *"ZeroLINC: Training-Free Local Classification of Security Incident Reports"* (SBSeg 2026, Salão de Ferramentas — Código Aberto).
+ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to the 12 NIST SP 800-61r3-derived categories locally, with no model training and no external API. Two engines behind one command: an **instance-memory engine** (similarity-weighted vote over previously labeled tickets) that reaches **90.8%** mean test accuracy with 89 labeled references, and a **zero-shot engine** (up to **70.9%**) for deployments with no labeled data. Classifying the whole evaluation corpus takes seconds and under 3 Wh on one GPU. This repository is the artifact of the paper *"ZeroLINC: Training-Free Local Classification of Security Incident Reports"* (SBSeg 2026, Salão de Ferramentas — Código Aberto).
 
 # README structure
 
@@ -60,16 +60,16 @@ categories: {...}
 
 The paper makes three claims; each is one command that fetches the evaluation artifact automatically and ends with a result box containing `OK`. No manual steps.
 
-## Claim #1 — Instance-memory engine reaches 90.5% mean test accuracy (main claim)
+## Claim #1 — Instance-memory engine reaches 90.8% mean test accuracy (main claim)
 
-- **Description:** with 89 labeled reference tickets and no training, the engine reaches 90.5% mean accuracy over 5 validation/test splits (range 88.2–92.5%), McNemar p<0.001 in every split. Runs the full protocol live. GPU fp16 embedding introduces small run-to-run variation (per-seed ±1–2 p.p., mean ±0.5 p.p.); the assertion band 88–93% absorbs it.
+- **Description:** with 89 labeled reference tickets and no training, the engine reaches 90.8% mean accuracy over 5 validation/test splits (range 89.2–92.5%), McNemar p<0.001 in every split. Runs the full protocol live. GPU fp16 embedding introduces small run-to-run variation (per-seed ±1–2 p.p., mean ±0.5 p.p.); the assertion band 88–93% absorbs it.
 - **Execution:** `./run_claim1.sh`
 - **Expected time:** ~5 min on GPU (first run: +2 min clone/sync/model download); ~15 min CPU-only
 - **Expected resources:** ~4 GB RAM, ~2 GB VRAM (GPU path), ~2 GB disk
 - **Expected result:** a box ending in
 
 ```
-  Mean test accuracy : 90.5%   (paper: 90.5%, range 88.2–92.5%)
+  Mean test accuracy : 90.8%   (paper: 90.8%, range 89.2–92.5%)
   McNemar vs majority: p < 0.001 in all 5 seeds (max p = ...)
   Expected: mean between 88% and 93%, every p < 0.001  →  OK
 ```

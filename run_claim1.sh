@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claim #1 (main): the instance-memory engine reaches 90.5% mean test accuracy.
+# Claim #1 (main): the instance-memory engine reaches 90.8% mean test accuracy.
 # Fetches the evaluation artifact (companion repo) automatically and runs the
 # 5-seed protocol live. One command, no manual steps.
 set -euo pipefail
