@@ -10,7 +10,8 @@ flowchart LR
     N --> R{"Router<br/>reference set?<br/>similarity >= 0.75?"}
     REF["labeled.csv or trained index<br/>zerolinc train"] --> M
     R -->|yes| M["Instance-Memory Engine<br/>Qwen3-Embedding-0.6B<br/>k-NN weighted vote"]
-    R -->|no| Z["Zero-Shot Engine<br/>GLiClass or DeBERTa-NLI<br/>12 category hypotheses"]
+    R -->|no| Z["Zero-Shot Engine<br/>GLiClass or DeBERTa-NLI<br/>scores 12 hypotheses"]
+    VB["Verbalizer<br/>12 categories x 8 sets"] --> Z
     M -->|below threshold: fallback| Z
     M --> OUT["predictions.csv<br/>category, confidence, engine"]
     Z --> OUT
@@ -26,6 +27,8 @@ flowchart TB
         RT --> ME["memory_engine.py<br/>embeddings, k-NN vote, index"]
         RT --> ZE["zeroshot_engine.py<br/>nli, gliclass, embed, rerank"]
         ZE --> VB["verbalizer.py<br/>12 categories x 8 verbalizations"]
+        RT --> VB
+        NM --> VB
     end
     HF[("Hugging Face Hub<br/>checkpoints, first use only")] -.-> ME
     HF -.-> ZE

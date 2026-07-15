@@ -18,7 +18,7 @@ from pathlib import Path
 import pandas as pd
 
 from .normalizer import Incident, load_incidents, normalize_text
-from .memory_engine import _vote, embed_texts
+from .memory_engine import vote, embed_texts
 from .verbalizer import PROMPT_CONFIGS
 
 ZEROSHOT_FAST = ("gliclass:knowledgator/gliclass-modern-base-v3.0", "en-event")
@@ -107,7 +107,7 @@ def classify_tickets(
             fallback.append(row_i)
             preds.append(None)  # type: ignore[arg-type]
             continue
-        label = _vote(sims[row_i], mem_labels, list(range(n_mem)), k)
+        label = vote(sims[row_i], mem_labels, list(range(n_mem)), k)
         preds.append(ToolPrediction(item.incident_id, label, round(top_sim, 4), "knn"))
 
     if fallback:

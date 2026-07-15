@@ -4,7 +4,7 @@ import argparse
 from collections import Counter
 from pathlib import Path
 
-from .router import classify_tickets, write_predictions
+from .router import DEFAULT_K, DEFAULT_SIM_THRESHOLD, classify_tickets, write_predictions
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -31,8 +31,8 @@ def main(argv: list[str] | None = None) -> int:
                        help="labeled CSV used directly as reference set")
     p_cls.add_argument("--engine", choices=("auto", "zeroshot", "zeroshot-max", "knn"),
                        default="auto")
-    p_cls.add_argument("--k", type=int, default=3)
-    p_cls.add_argument("--sim-threshold", type=float, default=0.75)
+    p_cls.add_argument("--k", type=int, default=DEFAULT_K)
+    p_cls.add_argument("--sim-threshold", type=float, default=DEFAULT_SIM_THRESHOLD)
     p_cls.add_argument("--text-column", default="conteudo")
     p_cls.add_argument("--batch-size", type=int, default=8)
     p_cls.add_argument("--output", type=Path, default=Path("predictions.csv"))

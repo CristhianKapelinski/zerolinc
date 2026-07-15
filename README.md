@@ -1,6 +1,6 @@
-# ZeroLINC — Training-Free Local Classification of Security Incident Reports
+# ZeroLINC: Training-Free Local Classification of Security Incident Reports
 
-ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to the 12 NIST SP 800-61r3-derived categories locally, with no model training and no external API. Two engines behind one command: an **instance-memory engine** (similarity-weighted vote over previously labeled tickets) that reaches **90.8%** mean test accuracy with 89 labeled references, and a **zero-shot engine** (up to **70.9%**) for deployments with no labeled data. Classifying the whole evaluation corpus takes seconds and under 3 Wh on one GPU. This repository is the artifact of the paper *"ZeroLINC: Training-Free Local Classification of Security Incident Reports"* (SBSeg 2026, Salão de Ferramentas — Código Aberto).
+ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to the 12 NIST SP 800-61r3-derived categories locally, with no model training (no weights are ever updated; the `train` command only persists an embedding index) and no external API. Two engines behind one command: an **instance-memory engine** (similarity-weighted vote over previously labeled tickets) that reaches **90.8%** mean test accuracy with 89 labeled references, and a **zero-shot engine** (up to **70.9%**) for deployments with no labeled data. Classifying the whole evaluation corpus takes seconds and under 3 Wh on one GPU. This repository is the artifact of the paper *"ZeroLINC: Training-Free Local Classification of Security Incident Reports"* (SBSeg 2026, Salão de Ferramentas, Código Aberto).
 
 # README structure
 
@@ -24,7 +24,7 @@ Paper experiments ran on: AMD Ryzen 5 8600G (6 cores), 30 GB RAM, NVIDIA GeForce
 
 # Dependencies
 
-All Python dependencies are version-frozen in the committed `uv.lock` (PyTorch 2.11 cu128, Transformers 5.12, Sentence-Transformers 5.6, GLiClass 0.1.18, pandas). No system packages beyond `git`, `curl`, and `uv`. Model checkpoints download automatically from Hugging Face on first use (~2 GB for the default engines); set `HF_HUB_CACHE` to control where. The labeled evaluation corpus ships in the companion benchmark repository, fetched automatically by the claim scripts.
+All Python dependencies are version-frozen in the committed `uv.lock` (PyTorch 2.11 cu128, Transformers 5.12, Sentence-Transformers 5.6, GLiClass 0.1.18, pandas). No system packages beyond `git`, `curl`, and `uv`. Model checkpoints download automatically from Hugging Face on first use (~2 GB for the default engines); set `HF_HUB_CACHE` to control where. The labeled evaluation corpus is not redistributed (it is available on request from the reference study's authors; see the benchmark repository's `data/README.md`). Claim #2 and the record-based paths run without it.
 
 # Security concerns
 
@@ -58,11 +58,11 @@ categories: {...}
 
 # Experiments
 
-The paper makes three claims; each is one command that fetches the evaluation artifact automatically and ends with a result box containing `OK`. No manual steps.
+The paper makes three claims; each is one command that fetches the evaluation artifact automatically and ends with a result box containing `OK`. Claims #2 and #3 need no manual steps; Claim #1 additionally needs the evaluation corpus, which is not redistributed (one manual step, documented in the benchmark's `data/README.md`).
 
-## Claim #1 — Instance-memory engine reaches 90.8% mean test accuracy (main claim)
+## Claim #1: Instance-memory engine reaches 90.8% mean test accuracy (main claim)
 
-- **Description:** with 89 labeled reference tickets and no training, the engine reaches 90.8% mean accuracy over 5 validation/test splits (range 89.2–92.5%), McNemar p<0.001 in every split. Runs the full protocol live. GPU fp16 embedding introduces small run-to-run variation (per-seed ±1–2 p.p., mean ±0.5 p.p.); the assertion band 88–93% absorbs it.
+- **Description:** requires the evaluation corpus (see `data/README.md` in the fetched benchmark repository). With 89 labeled reference tickets and no gradient training, the engine reaches 90.8% mean accuracy over 5 validation/test splits (range 89.2–92.5%), McNemar p<0.001 in every split. Runs the full protocol live. GPU fp16 embedding introduces small run-to-run variation (per-seed ±1–2 p.p., mean ±0.5 p.p.); the assertion band 88–93% absorbs it.
 - **Execution:**
 
   ```bash
@@ -78,7 +78,7 @@ The paper makes three claims; each is one command that fetches the evaluation ar
   Expected: mean between 88% and 93%, every p < 0.001  →  OK
 ```
 
-## Claim #2 — Zero-shot engines reach up to 70.9% (protocol mean 68.8%)
+## Claim #2: Zero-shot engines reach up to 70.9% (protocol mean 68.8%)
 
 - **Description:** recomputes every metric of the 292-run study from committed per-ticket predictions and re-runs the 5-seed selection protocol. No GPU.
 - **Execution:**
@@ -97,7 +97,7 @@ The paper makes three claims; each is one command that fetches the evaluation ar
   Expected: best 70.9%, NLI mean 68.8%  →  OK
 ```
 
-## Claim #3 — The default zero-shot engine costs seconds and under 3 Wh
+## Claim #3: The default zero-shot engine costs seconds and under 3 Wh
 
 - **Description:** verifies the cost claim for the default engine over the 182-ticket corpus. Re-timed live when a GPU is present (`SKIP_LIVE=1 ./run_claim3.sh` forces the no-GPU path, which reads the committed run record). Wall-clock varies with hardware; the assertion is < 60 s and < 3 Wh.
 - **Execution:**

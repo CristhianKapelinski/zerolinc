@@ -28,7 +28,7 @@ def embed_texts(model_id: str, texts: list[str], batch_size: int = 8,
     return emb
 
 
-def _vote(sims_row, labels: list[str], candidate_idx: list[int], k: int) -> str:
+def vote(sims_row, labels: list[str], candidate_idx: list[int], k: int) -> str:
     """Similarity-weighted vote among the k most similar candidates."""
     top = sorted(candidate_idx, key=lambda j: -sims_row[j])[:k]
     weight: dict[str, float] = defaultdict(float)

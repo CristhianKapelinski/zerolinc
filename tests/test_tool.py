@@ -2,7 +2,7 @@
 
 from zerolinc.zeroshot_engine import parse_spec
 from zerolinc.normalizer import normalize_text
-from zerolinc.memory_engine import _vote
+from zerolinc.memory_engine import vote
 from zerolinc.verbalizer import CATEGORIES, CODES, PROMPT_CONFIGS
 
 
@@ -27,9 +27,9 @@ def test_parse_spec():
     assert parse_spec("a/b") == ("nli", "a/b")
 
 
-def test_vote_weighted_majority():
+def testvote_weighted_majority():
     sims = [0.9, 0.8, 0.1]
-    assert _vote(sims, ["CAT3", "CAT3", "CAT5"], [0, 1, 2], 3) == "CAT3"
+    assert vote(sims, ["CAT3", "CAT3", "CAT5"], [0, 1, 2], 3) == "CAT3"
 
 
 def test_tool_load_texts(tmp_path):
