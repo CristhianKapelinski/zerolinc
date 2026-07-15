@@ -1,19 +1,18 @@
 # ZeroLINC architecture
 
-The package mirrors the architecture described in the paper: one module per
-component, one command in front.
+One module per component, matching the paper; one command in front.
 
 ## Data flow
 
 ```mermaid
 flowchart LR
-    IN[/tickets.csv/] --> N[Normalizer\ntag compression\nsubject view]
-    N --> R{Router\nreference set?\nsim >= 0.75?}
-    REF[/labeled.csv or trained index\nzerolinc train/] --> M
-    R -->|yes| M[Instance-Memory Engine\nQwen3-Embedding-0.6B\nk-NN weighted vote]
-    R -->|no / fallback| Z[Zero-Shot Engine\nGLiClass / DeBERTa-NLI\nx Verbalizer, 12 hypotheses]
-    M -->|below threshold| Z
-    M --> OUT[/predictions.csv\ncategory, confidence, engine/]
+    IN["tickets.csv"] --> N["Normalizer<br/>tag compression<br/>subject view"]
+    N --> R{"Router<br/>reference set?<br/>similarity >= 0.75?"}
+    REF["labeled.csv or trained index<br/>zerolinc train"] --> M
+    R -->|yes| M["Instance-Memory Engine<br/>Qwen3-Embedding-0.6B<br/>k-NN weighted vote"]
+    R -->|no| Z["Zero-Shot Engine<br/>GLiClass or DeBERTa-NLI<br/>12 category hypotheses"]
+    M -->|below threshold: fallback| Z
+    M --> OUT["predictions.csv<br/>category, confidence, engine"]
     Z --> OUT
 ```
 
@@ -21,14 +20,14 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph zerolinc [zerolinc package, ~800 LOC]
-        CLI[cli.py\nargument parsing] --> RT[router.py\nengine selection + fallback]
-        RT --> NM[normalizer.py\nIncident, tag compression, subject view]
-        RT --> ME[memory_engine.py\nembed_texts, k-NN vote]
-        RT --> ZE[zeroshot_engine.py\nnli / gliclass / embed / rerank backends]
-        ZE --> VB[verbalizer.py\n12 NIST categories x 8 verbalization sets]
+    subgraph pkg["zerolinc package"]
+        CLI["cli.py<br/>train / classify"] --> RT["router.py<br/>engine selection + fallback"]
+        RT --> NM["normalizer.py<br/>tag compression, subject view"]
+        RT --> ME["memory_engine.py<br/>embeddings, k-NN vote, index"]
+        RT --> ZE["zeroshot_engine.py<br/>nli, gliclass, embed, rerank"]
+        ZE --> VB["verbalizer.py<br/>12 categories x 8 verbalizations"]
     end
-    HF[(Hugging Face Hub\ncheckpoints, first use only)] -.-> ME
+    HF[("Hugging Face Hub<br/>checkpoints, first use only")] -.-> ME
     HF -.-> ZE
 ```
 
@@ -37,13 +36,13 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     participant U as Operator
-    participant C as cli.py
-    participant R as router.py
+    participant C as cli
+    participant R as router
     participant M as memory_engine
     participant Z as zeroshot_engine
-    U->>C: zerolinc --input tickets.csv --memory labeled.csv
-    C->>R: classify_tickets(...)
-    R->>M: embed reference set + tickets
+    U->>C: zerolinc classify --input tickets.csv --model soc.npz
+    C->>R: classify_tickets
+    R->>M: embed incoming tickets
     loop each ticket
         alt nearest similarity >= 0.75
             R->>M: k-NN weighted vote
@@ -51,6 +50,6 @@ sequenceDiagram
             R->>Z: zero-shot scoring (fallback)
         end
     end
-    R-->>C: predictions (category, confidence, engine)
+    R-->>C: predictions
     C-->>U: predictions.csv
 ```
