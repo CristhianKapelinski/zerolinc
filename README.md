@@ -7,7 +7,7 @@ Two engines, one command:
 - **Zero-shot** (day zero, no labeled data): scores each ticket against natural-language category descriptions. Up to **70.9%** accuracy on the evaluation corpus.
 - **Instance-memory** (you have labeled tickets): similarity-weighted vote over your own labeled examples. **90.5%** mean test accuracy with 89 labeled references, no training. Tickets dissimilar to every reference fall back to the zero-shot engine automatically.
 
-Runs on a single consumer GPU (under 4 GB VRAM; CPU-only also works, slower) and classifies hundreds of tickets per minute.
+Runs on a single GPU (under 4 GB VRAM; CPU-only also works, slower) and classifies hundreds of tickets per minute.
 
 ## Install
 
@@ -36,6 +36,10 @@ uv run zerolinc --input tickets.csv --memory labeled.csv --output predictions.cs
 - `--engine zeroshot-max` swaps the fast zero-shot model for the strongest (slower) one.
 
 Models are downloaded from Hugging Face on first use; set `HF_HUB_CACHE` to control where.
+
+## Architecture
+
+One module per component, matching the paper: `normalizer.py` (tag compression, subject view), `verbalizer.py` (the 12 NIST categories in 8 verbalization sets), `zeroshot_engine.py` (NLI, GLiClass, embedding, and reranker backends behind one interface), `memory_engine.py` (embedding + k-NN vote), `router.py` (per-ticket engine selection with similarity fallback), `cli.py`. Data-flow, module, and sequence diagrams: [docs/architecture.md](docs/architecture.md).
 
 ## How it works and how well
 

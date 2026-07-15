@@ -1,9 +1,9 @@
 """Offline unit tests for the tool package (no network, no models)."""
 
-from zerolinc.backends import parse_spec
-from zerolinc.data import normalize_text
-from zerolinc.knn import _vote
-from zerolinc.labels import CATEGORIES, CODES, PROMPT_CONFIGS
+from zerolinc.zeroshot_engine import parse_spec
+from zerolinc.normalizer import normalize_text
+from zerolinc.memory_engine import _vote
+from zerolinc.verbalizer import CATEGORIES, CODES, PROMPT_CONFIGS
 
 
 def test_twelve_categories():
@@ -34,7 +34,7 @@ def test_vote_weighted_majority():
 
 def test_tool_load_texts(tmp_path):
     import pandas as pd
-    from zerolinc.tool import _load_texts
+    from zerolinc.router import _load_texts
     f = tmp_path / "in.csv"
     pd.DataFrame({"incidente_id": ["A1"], "conteudo": ["texto [URL_aabbccdd11]"]}).to_csv(
         f, index=False)

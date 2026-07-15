@@ -4,7 +4,7 @@ import argparse
 from collections import Counter
 from pathlib import Path
 
-from .tool import classify_tickets, write_predictions
+from .router import classify_tickets, write_predictions
 
 
 def main(argv: list[str] | None = None) -> int:
