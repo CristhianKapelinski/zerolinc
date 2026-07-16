@@ -2,6 +2,8 @@
 
 ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to the 12 NIST SP 800-61r3-derived categories locally, with no model training (no weights are ever updated; the `train` command only persists an embedding index) and no external API. Two engines in one command-line tool: an **instance-memory engine** (similarity-weighted vote over previously labeled tickets) that reaches **90.8%** mean test accuracy with 89 labeled references, and a **zero-shot engine** (up to **70.9%**) for deployments with no labeled data. Classifying the whole evaluation corpus takes seconds and under 3 Wh on one GPU. This repository is the artifact of the paper *"ZeroLINC: Training-Free Local Classification of Security Incident Reports"* (SBSeg 2026, Salão de Ferramentas, Código Aberto).
 
+<p align="center"><img src="docs/img/architecture.png" alt="ZeroLINC architecture: tickets flow through the Normalizer and Router to the Instance-Memory or Zero-Shot engine" width="92%"></p>
+
 # README structure
 
 1. [Considered seals](#considered-seals)
