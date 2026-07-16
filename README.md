@@ -4,6 +4,10 @@ ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to
 
 <p align="center"><img src="docs/img/architecture.png" alt="ZeroLINC architecture: tickets flow through the Normalizer and Router to the Instance-Memory or Zero-Shot engine" width="92%"></p>
 
+<p align="center"><img src="docs/img/latent_space_3d.gif" alt="Rotating 3D t-SNE of the ticket embeddings, colored by category" width="55%"></p>
+<p align="center"><em>Why the instance-memory engine works: recurring alert templates form tight per-category clusters in the embedding space. <a href="docs/img/latent_space_3d.html">Interactive version</a> (download and open; no ticket text embedded).</em></p>
+
+
 # README structure
 
 1. [Considered seals](#considered-seals)
