@@ -22,7 +22,7 @@ ZeroLINC is an open-source classifier that assigns SOC/CSIRT incident tickets to
 Repository layout:
 
 - `src/zerolinc/`: one module per architecture component: `normalizer.py`, `verbalizer.py`, `zeroshot_engine.py`, `memory_engine.py`, `router.py`, `cli.py`
-- `examples/`: sample input
+- `examples/`: the reference study's five public sample tickets (see `examples/README.md`)
 - `docs/architecture.md`: data-flow, module, and sequence diagrams
 - `run_claim{1,2,3}.sh`: one script per paper claim
 - `tests/`: offline unit tests
@@ -74,8 +74,8 @@ uv run zerolinc classify --input examples/tickets_sample.csv --engine zeroshot
 Expected final lines:
 
 ```
-3 tickets classified -> predictions.csv
-engines: {'zeroshot': 3}
+5 tickets classified -> predictions.csv
+engines: {'zeroshot': 5}
 categories: {...}
 ```
 
