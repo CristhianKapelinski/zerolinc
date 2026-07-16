@@ -47,7 +47,7 @@ Paper experiments ran on: AMD Ryzen 5 8600G (6 cores), 30 GB RAM, NVIDIA GeForce
 
 # Dependencies
 
-All Python dependencies are version-frozen in the committed `uv.lock` (PyTorch 2.11 cu128, Transformers 5.12, Sentence-Transformers 5.6, GLiClass 0.1.18, pandas). No system packages beyond `git`, `curl`, and `uv`. Model checkpoints download automatically from Hugging Face on first use (~2 GB for the default engines); set `HF_HUB_CACHE` to control where. The labeled evaluation corpus ships in the companion benchmark repository (texts as published by the reference group's anonymization artifact; provenance in its `data/README.md`), fetched automatically by the claim scripts.
+All Python dependencies are version-frozen in the committed `uv.lock` (PyTorch 2.11 cu128, Transformers 5.12, Sentence-Transformers 5.6, GLiClass 0.1.18, pandas). No system packages beyond `git`, `curl`, and `uv`. Model checkpoints download automatically from Hugging Face on first use (~2 GB for the default engines); set `HF_HUB_CACHE` to control where. The labeled evaluation corpus is not redistributed (available from the reference studies' authors on request; see the benchmark repository's `data/README.md`). Claim #2 and the record-based paths run without it.
 
 # Security concerns
 
@@ -81,11 +81,11 @@ categories: {...}
 
 # Experiments
 
-The paper makes three claims; each is one command that fetches the evaluation artifact automatically and ends with a result box containing `OK`. No manual steps.
+The paper makes three claims; each is one command that fetches the evaluation artifact automatically and ends with a result box containing `OK`. Claims #2 and #3 need no manual steps; Claim #1 additionally needs the evaluation corpus, which is not redistributed (one request, documented in the benchmark's `data/README.md`).
 
 ## Claim #1: Instance-memory engine reaches 90.8% mean test accuracy (main claim)
 
-- **Description:** with 89 labeled reference tickets and no gradient training, the engine reaches 90.8% mean accuracy over 5 validation/test splits (range 89.2–92.5%), McNemar p<0.001 in every split. Runs the full protocol live. GPU fp16 embedding introduces small run-to-run variation (per-seed ±1–2 p.p., mean ±0.5 p.p.); the assertion band 88–93% absorbs it.
+- **Description:** requires the evaluation corpus (see `data/README.md` in the fetched benchmark repository). With 89 labeled reference tickets and no gradient training, the engine reaches 90.8% mean accuracy over 5 validation/test splits (range 89.2–92.5%), McNemar p<0.001 in every split. Runs the full protocol live. GPU fp16 embedding introduces small run-to-run variation (per-seed ±1–2 p.p., mean ±0.5 p.p.); the assertion band 88–93% absorbs it.
 - **Execution:**
 
   ```bash
