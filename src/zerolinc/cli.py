@@ -32,7 +32,8 @@ def main(argv: list[str] | None = None) -> int:
                        help="trained reference index (from 'zerolinc train')")
     p_cls.add_argument("--memory", type=Path, default=None,
                        help="labeled CSV used directly as reference set")
-    p_cls.add_argument("--engine", choices=("auto", "zeroshot", "zeroshot-max", "knn"),
+    p_cls.add_argument("--engine",
+                       choices=("auto", "zeroshot", "zeroshot-max", "embed", "rerank", "knn"),
                        default="auto")
     p_cls.add_argument("--k", type=int, default=DEFAULT_K)
     p_cls.add_argument("--sim-threshold", type=float, default=DEFAULT_SIM_THRESHOLD)

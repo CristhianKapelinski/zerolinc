@@ -21,8 +21,13 @@ from .normalizer import Incident, load_incidents, normalize_text
 from .memory_engine import vote, embed_texts
 from .verbalizer import PROMPT_CONFIGS
 
-ZEROSHOT_FAST = ("gliclass:knowledgator/gliclass-modern-base-v3.0", "en-event")
-ZEROSHOT_MAX = ("nli:MoritzLaurer/deberta-v3-large-zeroshot-v2.0", "en-desc-kw")
+
+ZEROSHOT_ENGINES: dict[str, tuple[str, str, str]] = {
+    "zeroshot":     ("gliclass:knowledgator/gliclass-modern-base-v3.0", "en-event",   "full"),
+    "zeroshot-max": ("nli:MoritzLaurer/deberta-v3-large-zeroshot-v2.0", "en-desc-kw", "subject"),
+    "embed":        ("embed:Qwen/Qwen3-Embedding-0.6B",                 "en-event",   "full"),
+    "rerank":       ("rerank:Qwen/Qwen3-Reranker-0.6B",                 "en-event",   "subject"),
+}
 EMBED_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 DEFAULT_K = 3
 DEFAULT_SIM_THRESHOLD = 0.75
@@ -59,11 +64,10 @@ def _zeroshot(items: list[Incident], engine: str, batch_size: int) -> list[ToolP
     from .zeroshot_engine import classify_any
     from .normalizer import subject_view
 
-    spec, config_name = ZEROSHOT_MAX if engine == "zeroshot-max" else ZEROSHOT_FAST
+    spec, config_name, view = ZEROSHOT_ENGINES[engine]
     config = PROMPT_CONFIGS[config_name]
-    # each engine uses the input view its configuration was selected with:
-    # subject-first for the NLI engine, plain text for the fast engine
-    texts = [subject_view(i.text) if engine == "zeroshot-max" else i.text for i in items]
+    # each engine uses the input view its configuration was selected with
+    texts = [subject_view(i.text) if view == "subject" else i.text for i in items]
     result = classify_any(spec, texts, config, batch_size=batch_size)
     return [
         ToolPrediction(i.incident_id, p, round(s, 4), engine)
@@ -88,8 +92,8 @@ def classify_tickets(
                         id_column if id_column != "incidente_id" else None)
 
     has_refs = bool(memory_path or index_path)
-    if engine in ("zeroshot", "zeroshot-max") or (engine == "auto" and not has_refs):
-        return _zeroshot(items, engine if engine.startswith("zeroshot") else "zeroshot", batch_size)
+    if engine in ZEROSHOT_ENGINES or (engine == "auto" and not has_refs):
+        return _zeroshot(items, engine if engine in ZEROSHOT_ENGINES else "zeroshot", batch_size)
 
     if not has_refs:
         raise ValueError("engine 'knn' requires --memory or a trained --model index")
