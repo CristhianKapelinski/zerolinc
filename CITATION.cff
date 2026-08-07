@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use this artifact, please cite the paper below."
+title: "ZeroLINC: Training-Free Local Classification of Security Incident Reports"
+abstract: >-
+  An open-source command-line tool that assigns SOC/CSIRT incident tickets to the 12
+  categories derived from NIST SP 800-61r3, locally and with no model training and no
+  external API. It carries two engines: an instance-memory engine that votes over
+  previously labeled tickets, and a zero-shot engine for deployments with no labeled data.
+type: software
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/CristhianKapelinski/zerolinc"
+keywords:
+  - incident-response
+  - security-operations
+  - zero-shot-classification
+  - nist-sp-800-61
+  - reproducibility
+authors:
+  - family-names: Kapelinski
+    given-names: Cristhian
+    orcid: "https://orcid.org/0009-0005-5750-022X"
+    affiliation: "AI Horizon Labs, Universidade Federal do Pampa (UNIPAMPA)"
+  - family-names: Machado
+    given-names: Beatriz
+    orcid: "https://orcid.org/0009-0002-2750-0323"
+    affiliation: "AI Horizon Labs, Universidade Federal do Pampa (UNIPAMPA)"
+  - family-names: Kreutz
+    given-names: Diego
+    orcid: "https://orcid.org/0000-0003-0830-0238"
+    affiliation: "AI Horizon Labs, Universidade Federal do Pampa (UNIPAMPA)"
+preferred-citation:
+  type: conference-paper
+  title: "ZeroLINC: Training-Free Local Classification of Security Incident Reports"
+  year: 2026
+  collection-title: "Anais do XXVI Simpósio Brasileiro de Segurança da Informação e de Sistemas Computacionais (SBSeg 2026)"
+  conference:
+    name: "Simpósio Brasileiro de Segurança da Informação e de Sistemas Computacionais (SBSeg 2026), Salão de Ferramentas"
+  publisher:
+    name: "Sociedade Brasileira de Computação (SBC)"
+  authors:
+    - family-names: Kapelinski
+      given-names: Cristhian
+      orcid: "https://orcid.org/0009-0005-5750-022X"
+    - family-names: Machado
+      given-names: Beatriz
+      orcid: "https://orcid.org/0009-0002-2750-0323"
+    - family-names: Kreutz
+      given-names: Diego
+      orcid: "https://orcid.org/0000-0003-0830-0238"
