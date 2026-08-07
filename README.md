@@ -104,6 +104,7 @@ Keep the clone and the `cd` on separate lines: chained with `&&`, a clone that f
 git clone https://github.com/CristhianKapelinski/zerolinc
 cd zerolinc
 curl -LsSf https://astral.sh/uv/install.sh | sh    # skip if uv is already installed
+export PATH="$HOME/.local/bin:$PATH"   # where the installer puts uv; the current shell needs telling
 uv sync --extra dev
 ```
 
