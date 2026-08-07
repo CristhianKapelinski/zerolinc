@@ -69,13 +69,18 @@ The seals considered are: **Available (SeloD)**, **Functional (SeloF)**, **Susta
 
 **Measured times.** The paper's campaign ran on an AMD Ryzen 5 8600G (6 cores), 30 GB RAM, NVIDIA RTX 5060 Ti (16 GB), Linux kernel 6.17, Python 3.13, PyTorch 2.11 (cu128), Transformers 5.12. The times below were measured on an AMD Ryzen 7 9700X (16 threads, 59 GB RAM, RTX 5080), with the models already downloaded.
 
-| Step | Command | Measured |
-|---|---|---|
-| Install | `uv sync --extra dev` | 0.9 s here, but that is a warm `uv` cache: the **first** run downloads ~7 GB of wheels (the CUDA build of PyTorch) and takes minutes |
-| Minimal test | `./minimal_test.sh` | 32 s, 1.6 GB peak RAM (first run also downloads ~0.8 GB of model) |
-| **Claim #1** | `./run_claim1.sh` | 1.9 s from the run of record, once the companion repository is fetched; ~3 min re-measured on a GPU |
-| **Claim #2** | `./run_claim2.sh` | 22 s |
-| **Claim #3** | `./run_claim3.sh` | 0.04 s |
+| Step | Command | Ryzen 7 9700X, warm caches | Second host, nothing cached |
+|---|---|---|---|
+| Install | `uv sync --extra dev` | 0.9 s | 1 min 17 s (downloads ~7 GB of wheels, mostly the CUDA build of PyTorch) |
+| Minimal test | `./minimal_test.sh` | 32 s, 1.6 GB peak RAM | 34 s, the 606 MB model download included |
+| **Claim #1** | `./run_claim1.sh` | 1.9 s | plus a one-time clone and build of the companion repository |
+| **Claim #2** | `./run_claim2.sh` | 22 s | idem |
+| **Claim #3** | `./run_claim3.sh` | 0.04 s | idem |
+
+The second column is the one to plan around: on a machine with an empty `uv` cache and no
+model downloaded, the whole path above is dominated by those two downloads, and the first
+claim you run also fetches and builds the companion repository (~7 GB more). Everything
+after that is seconds. `./cleanup.sh` gives all of it back.
 
 ## Dependencies
 
