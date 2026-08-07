@@ -13,7 +13,9 @@ def embed_texts(model_id: str, texts: list[str], batch_size: int = 8,
     import torch
     from sentence_transformers import SentenceTransformer
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    from zerolinc.device import cuda_usable
+
+    device = "cuda" if cuda_usable() else "cpu"
     model = SentenceTransformer(
         model_id, device=device,
         model_kwargs={"torch_dtype": torch.float16} if device == "cuda" else None,

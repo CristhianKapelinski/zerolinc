@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import torch
 from transformers import pipeline
 
+from .device import cuda_usable
 from .verbalizer import PromptConfig
 
 
@@ -35,7 +36,7 @@ def classify(
 ) -> RunResult:
     """Run one model x prompt-config pass over all texts."""
     if device is None:
-        device = 0 if torch.cuda.is_available() else -1
+        device = 0 if cuda_usable() else -1
     if device >= 0:
         torch.cuda.init()
         torch.cuda.reset_peak_memory_stats(device)
@@ -107,7 +108,7 @@ def classify_gliclass(
     from gliclass import GLiClassModel, ZeroShotClassificationPipeline
     from transformers import AutoTokenizer
 
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if cuda_usable() else "cpu"
     if device != "cpu":
         torch.cuda.init()
         torch.cuda.reset_peak_memory_stats(0)

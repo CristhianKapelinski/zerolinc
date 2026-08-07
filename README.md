@@ -65,7 +65,7 @@ The seals considered are: **Available (SeloD)**, **Functional (SeloF)**, **Susta
 | Runtime | Python ≥ 3.11, managed by [`uv`](https://docs.astral.sh/uv/) |
 | RAM | 4 GB for the claims; 16 GB recommended for the live paths |
 | Disk | ~15 GB: the environment plus the model checkpoints downloaded on first use |
-| GPU | optional. Every claim completes without one; a CUDA GPU with ≥ 4 GB only makes the live paths faster |
+| GPU | optional. Every claim completes without one; a CUDA GPU with ≥ 4 GB only makes the live paths faster. A card older than the pinned PyTorch build supports is detected and skipped in favour of the CPU, with the reason printed; `ZEROLINC_DEVICE=cpu` or `=cuda` overrides the choice |
 
 **Measured times.** The paper's campaign ran on an AMD Ryzen 5 8600G (6 cores), 30 GB RAM, NVIDIA RTX 5060 Ti (16 GB), Linux kernel 6.17, Python 3.13, PyTorch 2.11 (cu128), Transformers 5.12. The times below were measured on an AMD Ryzen 7 9700X (16 threads, 59 GB RAM, RTX 5080), with the models already downloaded.
 
