@@ -71,11 +71,11 @@ The seals considered are: **Available (SeloD)**, **Functional (SeloF)**, **Susta
 
 | Step | Command | Measured |
 |---|---|---|
-| Install | `uv sync --extra dev` | ~3 min cold, seconds warm |
-| Minimal test | `./minimal_test.sh` | MT_TIME (first run also downloads ~0.8 GB) |
-| **Claim #1** | `./run_claim1.sh` | C1_TIME from the run of record; ~3 min re-measured on a GPU |
-| **Claim #2** | `./run_claim2.sh` | C2_TIME |
-| **Claim #3** | `./run_claim3.sh` | C3_TIME |
+| Install | `uv sync --extra dev` | 0.9 s here, but that is a warm `uv` cache: the **first** run downloads ~7 GB of wheels (the CUDA build of PyTorch) and takes minutes |
+| Minimal test | `./minimal_test.sh` | 32 s, 1.6 GB peak RAM (first run also downloads ~0.8 GB of model) |
+| **Claim #1** | `./run_claim1.sh` | 1.9 s from the run of record, once the companion repository is fetched; ~3 min re-measured on a GPU |
+| **Claim #2** | `./run_claim2.sh` | 22 s |
+| **Claim #3** | `./run_claim3.sh` | 0.04 s |
 
 ## Dependencies
 
@@ -110,12 +110,20 @@ One command. It runs the offline unit suite and then classifies the bundled samp
 ./minimal_test.sh
 ```
 
-- **Expected time:** MT_TIME measured. The first run also downloads the ~0.8 GB checkpoint.
-- **Expected resources:** ~4 GB RAM, ~1 GB disk beyond the environment. No GPU required.
+- **Expected time:** 32 s measured with the checkpoint already cached. The first run also downloads it (~0.8 GB).
+- **Expected resources:** 1.6 GB peak RAM measured, ~1 GB disk beyond the environment. No GPU required.
 - **Expected result:** the suite passes, five tickets are classified, and the run ends in `MINIMAL TEST: PASSED`:
 
 ```text
-MT_OUTPUT
+== [1/2] unit suite (offline, no model) ==
+7 passed, 2 warnings in 6.85s
+
+== [2/2] classifying the bundled sample with the zero-shot engine ==
+5 tickets classified -> predictions.csv
+engines: {'zeroshot': 5}
+categories: {'CAT5': 5}
+
+MINIMAL TEST: PASSED
 ```
 
 ## Experiments
@@ -139,12 +147,34 @@ MT_OUTPUT
 ```
 
 - **Flags:** none. Place `data/185_incidentes_anon.csv` in the fetched companion repository to switch to the live path.
-- **Expected time:** C1_TIME from the run of record; about 3 minutes re-measured on a GPU, 15 on CPU.
+- **Expected time:** 1.9 s from the run of record, plus a one-time clone of the companion repository on the first claim you run. About 3 minutes re-measured on a GPU, 15 on CPU.
 - **Expected resources:** ~4 GB RAM. GPU optional, network only for the first fetch.
 - **Expected result:**
 
 ```text
-C1_OUTPUT
+No corpus here (it is not redistributable, see data/README.md);
+verifying against the committed run of record instead.
+
+══════════════════════════════════════════════════════════════════
+  Claim #1: the instance-memory engine classifies incident tickets at
+            90.8% mean test accuracy, with no gradient training
+──────────────────────────────────────────────────────────────────
+  seed   42   test accuracy  91.4%     McNemar p = 0.00e+00
+  seed    7   test accuracy  92.5%     McNemar p = 0.00e+00
+  seed  123   test accuracy  90.3%     McNemar p = 0.00e+00
+  seed 2024   test accuracy  89.2%     McNemar p = 0.00e+00
+  seed   99   test accuracy  90.3%     McNemar p = 0.00e+00
+──────────────────────────────────────────────────────────────────
+  mean test accuracy                : 90.8%   (paper 90.8%)        OK
+  McNemar significant in all five   : yes     (max p = 0.0e+00)    OK
+──────────────────────────────────────────────────────────────────
+  source of these numbers               : the committed run of record; the corpus
+                                          is not redistributable, so run the live
+                                          path only if you obtained it (data/README.md)
+  gate                                  : mean within 88-93%, every p < 0.001
+──────────────────────────────────────────────────────────────────
+  RESULT: OK   (the paper's headline holds here)
+══════════════════════════════════════════════════════════════════
 ```
 
 ### Claim #2: the zero-shot engines reach up to 70.9%, and 68.8% under the selection protocol
@@ -158,12 +188,19 @@ C1_OUTPUT
 ```
 
 - **Flags:** none.
-- **Expected time:** C2_TIME measured. Deterministic.
+- **Expected time:** 22 s measured. Deterministic.
 - **Expected resources:** ~2 GB RAM, ~1 GB disk. No GPU, no corpus.
 - **Expected result:**
 
 ```text
-C2_OUTPUT
+══════════════════════════════════════════════════════════════
+  Claim #2 — Zero-shot engines (from the committed run of record)
+══════════════════════════════════════════════════════════════
+  Best single run     : 70.9%  (deberta-v3-large-zeroshot-v2.0__en-desc-kw__subject)
+  NLI protocol mean   : 68.8%  (range 66.7–69.9%) over 5 splits
+  Majority-class floor: 63.4%
+  Expected: best 70.9%, NLI mean 68.8%  →  OK
+══════════════════════════════════════════════════════════════
 ```
 
 ### Claim #3: the default zero-shot engine classifies the corpus in seconds and under 3 Wh
@@ -177,12 +214,21 @@ C2_OUTPUT
 ```
 
 - **Flags:** `SKIP_LIVE=1 ./run_claim3.sh` forces the committed-record path even when a GPU is present.
-- **Expected time:** C3_TIME measured.
+- **Expected time:** 0.04 s measured.
 - **Expected resources:** ~4 GB RAM, ~1 GB VRAM on the live path.
 - **Expected result:**
 
 ```text
-C3_OUTPUT
+══════════════════════════════════════════════════════════════
+  Claim #3 — Cost of the default zero-shot engine (182 tickets)
+══════════════════════════════════════════════════════════════
+  Wall-clock time : 7.7 s   (committed run record)
+  GPU energy      : 0.329 Wh
+  Peak VRAM       : 0.9 GB
+  Accuracy        : 67.0%
+  Reference (paper): LLM APIs needed minutes and US$ fees per pass
+  Expected: < 60 s, < 3 Wh, accuracy > 60%  →  OK
+══════════════════════════════════════════════════════════════
 ```
 
 ## Cleaning up
