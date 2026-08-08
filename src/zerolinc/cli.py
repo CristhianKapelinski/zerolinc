@@ -8,6 +8,12 @@ from .router import DEFAULT_K, DEFAULT_SIM_THRESHOLD, classify_tickets, write_pr
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Parse CLI arguments and run the requested ``train`` or ``classify`` subcommand.
+
+    Prints a short result summary to stdout and returns 0 on success; argparse
+    reports argument errors itself and exits the process before this function
+    returns.
+    """
     parser = argparse.ArgumentParser(
         prog="zerolinc",
         description="Training-free local classification of security incident "

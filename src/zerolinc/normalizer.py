@@ -30,6 +30,11 @@ _PLACEHOLDER = {
 
 @dataclass(frozen=True)
 class Incident:
+    """One ticket after loading: its id, (optionally normalized) text, and label.
+
+    ``label`` is the empty string for unlabeled tickets being classified.
+    """
+
     incident_id: str
     text: str
     label: str
@@ -66,6 +71,12 @@ def load_incidents(path: str | Path, normalize: bool = True,
                    text_column: str = "conteudo",
                    id_column: str = "incidente_id",
                    label_column: str = "categoria") -> list[Incident]:
+    """Load a labeled CSV into ``Incident`` records, the reference set for Claim #1.
+
+    Drops exact duplicate ticket ids, keeping the first occurrence. Raises
+    ``ValueError`` if a required column is missing, a label falls outside the
+    12 known category codes, or a text cell is empty or not a string.
+    """
     df = pd.read_csv(path)
     required = {id_column, text_column, label_column}
     missing = required - set(df.columns)
@@ -107,6 +118,11 @@ def boilerplate_lines(texts: list[str], threshold: float = 0.15, min_len: int = 
 
 
 def deboiler_view(incidents: list[Incident]) -> list[Incident]:
+    """Strip corpus-wide boilerplate lines (see boilerplate_lines) from each text.
+
+    Falls back to the original text for an incident left empty once its
+    boilerplate lines are removed.
+    """
     boiler = boilerplate_lines([i.text for i in incidents])
     out = []
     for i in incidents:

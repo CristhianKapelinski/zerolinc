@@ -35,6 +35,15 @@ DEFAULT_SIM_THRESHOLD = 0.75
 
 @dataclass(frozen=True)
 class ToolPrediction:
+    """One ticket's outcome: predicted category, its score, and which engine produced it.
+
+    ``confidence`` is a cosine similarity for the knn engine and a normalized
+    entailment/label score for the zero-shot engines; the two are not on the
+    same scale. ``engine`` is one of the ``ZEROSHOT_ENGINES`` keys, ``"knn"``,
+    or ``"zeroshot-fallback"`` for tickets the auto engine routed away from
+    knn.
+    """
+
     incident_id: str
     category: str
     confidence: float
@@ -88,6 +97,18 @@ def classify_tickets(
     label_column: str = "categoria",
     embed_model: str = EMBED_MODEL,
 ) -> list[ToolPrediction]:
+    """Classify a CSV of tickets, dispatching to the requested or auto-selected engine.
+
+    Implements both headline classification paths: the ``knn`` engine votes
+    over a reference set built by ``memory_engine`` (Claim #1), and the
+    zero-shot engines score each ticket against the category hypotheses
+    (Claim #2), with the default ``zeroshot`` engine also the one Claim #3
+    times and meters for energy. Under ``engine="auto"``, a ticket falls back
+    from knn to the zero-shot engine whenever its nearest reference is
+    farther than ``sim_threshold``, so unfamiliar tickets are not forced onto
+    the memory. Raises ``ValueError`` if ``engine="knn"`` is requested
+    without a ``--memory`` file or a trained ``--model`` index.
+    """
     items = _load_texts(input_path, text_column,
                         id_column if id_column != "incidente_id" else None)
 
@@ -134,4 +155,5 @@ def classify_tickets(
 
 
 def write_predictions(preds: list[ToolPrediction], out_path: str | Path) -> None:
+    """Write predictions to ``out_path`` as CSV, one row per ``ToolPrediction`` field."""
     pd.DataFrame([p.__dict__ for p in preds]).to_csv(out_path, index=False)

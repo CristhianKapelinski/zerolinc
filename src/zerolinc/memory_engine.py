@@ -10,6 +10,13 @@ from collections import defaultdict
 
 def embed_texts(model_id: str, texts: list[str], batch_size: int = 8,
                 max_seq_length: int = 2048):
+    """Embed texts with a SentenceTransformer model, on GPU when usable.
+
+    Backs the instance-memory engine (Claim #1): both index construction and
+    classification-time queries call this to place tickets in the same
+    embedding space (L2-normalized output). Loads the model fresh on every
+    call, then releases it and clears the CUDA cache before returning.
+    """
     import torch
     from sentence_transformers import SentenceTransformer
 

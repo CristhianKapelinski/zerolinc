@@ -16,6 +16,13 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Category:
+    """One of the 12 NIST SP 800-61r3-derived incident categories.
+
+    Carries both English and Portuguese names/descriptions plus the reference
+    prompt's keyword list; see the module docstring for the source of each
+    field.
+    """
+
     code: str
     name_en: str
     name_pt: str

@@ -18,6 +18,14 @@ from .verbalizer import PromptConfig
 
 @dataclass(frozen=True)
 class RunResult:
+    """Predictions from one zero-shot pass, plus their wall-clock and memory cost.
+
+    ``wall_seconds`` is what Claim #3 bounds (seconds to classify the
+    corpus); energy in Wh is sampled outside this package by the companion
+    benchmark's power meter, not computed here. ``peak_vram_mb`` is 0.0 on
+    CPU.
+    """
+
     predictions: list[str]  # category codes, aligned with input order
     top_scores: list[float]
     wall_seconds: float
@@ -105,6 +113,14 @@ def parse_spec(spec: str) -> tuple[str, str]:
 def classify_gliclass(
     model_id: str, texts: list[str], config: PromptConfig, batch_size: int = 8
 ) -> RunResult:
+    """Score texts against the category hypotheses with a GLiClass model.
+
+    Backs the ``zeroshot`` engine, the tool's fast default (see
+    router.ZEROSHOT_ENGINES) and the one Claim #3 times and meters. Requests
+    every candidate label's score (multi-label, threshold 0) rather than only
+    the top one: the argmax over that full set equals single-label
+    classification, but ``all_scores`` also needs the rest.
+    """
     from gliclass import GLiClassModel, ZeroShotClassificationPipeline
     from transformers import AutoTokenizer
 
@@ -148,6 +164,13 @@ def classify_gliclass(
 def classify_embed(
     model_id: str, texts: list[str], config: PromptConfig, batch_size: int = 16
 ) -> RunResult:
+    """Score texts against the category hypotheses by cosine similarity of embeddings.
+
+    Backs the ``embed`` engine, an additional zero-shot baseline: embeds the
+    candidate labels once and every input text with an instruction-tuned
+    query prompt, then ranks by dot product (embeddings are L2-normalized,
+    so this is cosine similarity).
+    """
     from sentence_transformers import SentenceTransformer
 
     device = "cuda" if cuda_usable() else "cpu"
@@ -200,6 +223,14 @@ _RERANK_SUFFIX = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
 def classify_rerank(
     model_id: str, texts: list[str], config: PromptConfig, batch_size: int = 8
 ) -> RunResult:
+    """Score texts against the category hypotheses with a yes/no reranker LLM.
+
+    Backs the ``rerank`` engine, an additional zero-shot baseline: for every
+    (ticket, category) pair, asks the model to judge a match and takes
+    softmax(yes, no) as the score. Ticket text is truncated to 6000
+    characters before prompting to bound pair length; the category with the
+    highest yes-probability wins.
+    """
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     device = "cuda" if cuda_usable() else "cpu"
@@ -256,6 +287,12 @@ def classify_rerank(
 def classify_any(
     spec: str, texts: list[str], config: PromptConfig, batch_size: int = 8
 ) -> RunResult:
+    """Dispatch to the zero-shot backend named in ``spec`` (see parse_spec).
+
+    The single entry point the router and the claim scripts use to run any
+    of the four zero-shot backends (nli, gliclass, embed, rerank) behind one
+    interface.
+    """
     backend, model_id = parse_spec(spec)
     if backend == "gliclass":
         return classify_gliclass(model_id, texts, config, batch_size)
