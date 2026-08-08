@@ -150,7 +150,7 @@ def classify_embed(
 ) -> RunResult:
     from sentence_transformers import SentenceTransformer
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if cuda_usable() else "cpu"
     if device == "cuda":
         torch.cuda.init()
         torch.cuda.reset_peak_memory_stats(0)
@@ -202,7 +202,7 @@ def classify_rerank(
 ) -> RunResult:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda" if cuda_usable() else "cpu"
     if device == "cuda":
         torch.cuda.init()
         torch.cuda.reset_peak_memory_stats(0)
