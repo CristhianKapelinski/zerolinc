@@ -85,7 +85,18 @@ after that is seconds. `./cleanup.sh` gives all of it back.
 ## Dependencies
 
 - **Python packages** are pinned to exact versions in the committed [`uv.lock`](uv.lock): PyTorch 2.11 (cu128), Transformers 5.12, Sentence-Transformers 5.6, GLiClass 0.1.18 and pandas. `uv sync` installs exactly those; no `pip` step is involved.
-- **System tools:** `git`, `curl` and `uv`. The installation section below fetches `uv` if it is missing.
+- **System tools:** `git`, `curl` and `uv`; no Docker. The installation section below fetches `uv` if it is missing, and every script checks all three before doing any work, printing the install command for the package manager it finds.
+
+  ```bash
+  sudo apt-get update && sudo apt-get install -y git curl   # Debian, Ubuntu
+  sudo dnf install -y git curl                              # Fedora, RHEL
+  sudo pacman -Sy --needed git curl                         # Arch
+  sudo zypper install -y git curl                           # openSUSE
+  curl -LsSf https://astral.sh/uv/install.sh | sh           # uv
+  export PATH="$HOME/.local/bin:$PATH"                      # the installer cannot do this for the running shell
+  ```
+
+  `git` is not needed only to clone: the claim scripts use it to fetch the companion repository at its pinned commit.
 - **Model checkpoints** download from the HuggingFace Hub on first use (~2 GB for the default engines). Set `HF_HUB_CACHE` to choose where they land; the default is the shared cache in your home directory.
 - **The evaluation run of record** comes from the companion repository, cloned by the claim scripts at a pinned commit so a later change there cannot alter what you reproduce.
 - **The incident corpus is not redistributed.** It belongs to the reference study (Severo et al., SBSeg 2025, DOI [10.5753/sbseg_estendido.2025.12510](https://doi.org/10.5753/sbseg_estendido.2025.12510)), which publishes only a five-ticket sample. No claim requires it: with the corpus in place Claim #1 re-measures, and without it the same numbers are verified against the committed per-split records.
