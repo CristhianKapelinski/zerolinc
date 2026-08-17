@@ -8,7 +8,7 @@ abstract: >-
   previously labeled tickets, and a zero-shot engine for deployments with no labeled data.
 type: software
 license: AGPL-3.0-or-later
-repository-code: "https://github.com/CristhianKapelinski/zerolinc"
+repository-code: "https://gitlab.com/cristhianavila.aluno/zerolinc"
 keywords:
   - incident-response
   - security-operations
