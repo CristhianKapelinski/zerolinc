@@ -268,8 +268,7 @@ Cite the paper, not the repository:
 @inproceedings{kapelinski2026zerolinc,
   author    = {Kapelinski, Cristhian and Machado, Beatriz and Kreutz, Diego},
   title     = {{ZeroLINC}: Training-Free Local Classification of Security Incident Reports},
-  booktitle = {Anais do XXVI Simp\'osio Brasileiro de Seguran\c{c}a da Informa\c{c}\~ao e de
-               Sistemas Computacionais (SBSeg 2026), Sal\~ao de Ferramentas},
+  booktitle = {Anais do XXVI Simp\'osio Brasileiro de Seguran\c{c}a da Informa\c{c}\~ao e de Sistemas Computacionais (SBSeg 2026), Sal\~ao de Ferramentas},
   year      = {2026},
   publisher = {Sociedade Brasileira de Computa\c{c}\~ao (SBC)},
 }
