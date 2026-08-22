@@ -18,11 +18,12 @@ ZeroLINC is an open-source command-line tool that assigns SOC/CSIRT incident tic
 | Section | Description |
 |---|---|
 | [Considered seals](#considered-seals) | The four seals and why each one holds |
-| [Basic information](#basic-information) | OS, runtime, hardware and measured times |
+| [Basic information](#basic-information) | OS, runtime, compilers, the two machines and measured times |
 | [Dependencies](#dependencies) | Pinned packages, and where the models and data come from |
 | [Security concerns](#security-concerns) | What runs where, network use, incident data |
 | [Installation](#installation) | Clone and one environment |
 | [Minimal test](#minimal-test) | One command, one real classification |
+| [Using it on your own tickets](#using-it-on-your-own-tickets) | Input format, the engines, output columns |
 | [Experiments](#experiments) | Claims #1 to #3, one command each |
 | [Cleaning up](#cleaning-up) | One command removes what a run created |
 | [How to cite](#how-to-cite) | Paper reference, BibTeX and `CITATION.cff` |
@@ -59,17 +60,40 @@ The seals considered are: **Available (SeloD)**, **Functional (SeloF)**, **Susta
 
 ## Basic information
 
+### What you need
+
 | Component | Requirement |
 |---|---|
-| OS | Linux x86-64 |
-| Runtime | Python ≥ 3.11, managed by [`uv`](https://docs.astral.sh/uv/) |
+| OS | Linux x86-64, any current distribution: the artifact installs no system package beyond `git` and `curl`. The only distribution pinned anywhere in the project is Ubuntu 24.04 LTS, in the companion repository's `Dockerfile` (`FROM nvidia/cuda:12.8.0-runtime-ubuntu24.04`), which is the closest reproducible match to the campaign environment described below |
+| Runtime | Python ≥ 3.11, managed by [`uv`](https://docs.astral.sh/uv/): it uses a suitable interpreter if it finds one and downloads one otherwise, so no system Python is required |
+| `uv` | ≥ 0.8.4. The committed [`uv.lock`](uv.lock) is lockfile `version = 1`, `revision = 3`, the format uv writes from 0.8.4 onwards. An older uv still reads the file — revision bumps are backwards compatible — but rewrites it on the first `uv lock` |
+| Compilers | none, and none is invoked. All 73 third-party packages in `uv.lock` resolve to prebuilt wheels, PyTorch and the CUDA runtime (`nvidia-cuda-runtime-cu12` 12.8.90) included; the only package built locally is `zerolinc` itself, pure Python through `hatchling`. No `gcc`, no `nvcc`, no CUDA toolkit on the host |
 | RAM | 4 GB for the claims; 16 GB recommended for the live paths |
 | Disk | ~15 GB: the environment plus the model checkpoints downloaded on first use |
 | GPU | optional. Every claim completes without one; a CUDA GPU with ≥ 4 GB only makes the live paths faster. A card older than the pinned PyTorch build supports is detected and skipped in favour of the CPU, with the reason printed; `ZEROLINC_DEVICE=cpu` or `=cuda` overrides the choice |
 
-**Measured times.** The paper's campaign ran on an AMD Ryzen 5 8600G (6 cores), 30 GB RAM, NVIDIA RTX 5060 Ti (16 GB), Linux kernel 6.17, Python 3.13, PyTorch 2.11 (cu128), Transformers 5.12. The times below were measured on an AMD Ryzen 7 9700X (16 threads, 59 GB RAM, RTX 5080), with the models already downloaded.
+### The two machines behind the numbers in this README
 
-| Step | Command | Ryzen 7 9700X, warm caches | Second host, nothing cached |
+Two different hosts appear below, and which one a number came from decides what it means for you.
+
+| | **Machine A** — the experimental campaign | **Machine B** — the timings in this README |
+|---|---|---|
+| What it produced | every accuracy, energy and VRAM figure in the paper and in Claims #1 to #3. They are read back from the committed run of record, which was measured here; running a claim elsewhere re-verifies those records, it does not re-measure them | only the wall-clock durations in the table below: how long each command takes, nothing else |
+| CPU | AMD Ryzen 5 8600G, 6 cores | AMD Ryzen 7 9700X, 16 threads |
+| RAM | 30 GB | 59 GB |
+| GPU | NVIDIA GeForce RTX 5060 Ti, 15.5 GB visible to CUDA | NVIDIA GeForce RTX 5080 |
+| Kernel | Linux 6.17.0-35-generic, x86-64, glibc 2.39 | not recorded |
+| Distribution | not recorded, see below | not recorded |
+| Python | 3.13 | 3.13 |
+| Stack | PyTorch 2.11.0+cu128, Transformers 5.12.1, Sentence-Transformers 5.6.0, GLiClass 0.1.18, as pinned by the companion repository's `uv.lock` | the same versions, from this repository's `uv.lock` |
+
+**Which of these are records and which are the authors' word.** Every result file in the companion repository carries a `machine` block written by Python's `platform` module: 292 of the 297 records have one, and 291 of them report Machine A as `Linux-6.17.0-35-generic-x86_64-with-glibc2.39`, and the remaining one, the default-engine cost record Claim #3 reads, was re-run later on the same host under `6.17.0-40-generic`. All 292 report the GPU as `NVIDIA GeForce RTX 5060 Ti`, 15.5 GB. That block is the source of the kernel, architecture, glibc and GPU rows above. It carries no distribution name or version, and `platform.processor()` returns only `x86_64` on Linux, so **the distribution of Machine A cannot be recovered from the artifact**, and its CPU model, its RAM and its Python version are as reported by the authors rather than read back from a record. The `uv` version used was never logged either; all the artifact fixes is the lower bound in the table above, derived from the lockfile revision. Nothing any claim verifies depends on these: the claims read committed records that contain the per-ticket predictions themselves, and Claim #2 is deterministic.
+
+### Measured times
+
+Machine B, with the models already downloaded. The last column is a third host, with an empty `uv` cache and no checkpoint on disk, which is the situation of a first-time reviewer; nothing beyond these durations was recorded about it.
+
+| Step | Command | Machine B, warm caches | A cold host, nothing cached |
 |---|---|---|---|
 | Install | `uv sync --extra dev` | 0.9 s | 1 min 17 s (downloads ~7 GB of wheels, mostly the CUDA build of PyTorch) |
 | Minimal test | `./minimal_test.sh` | 32 s, 1.6 GB peak RAM | 34 s, the 606 MB model download included |
@@ -77,15 +101,15 @@ The seals considered are: **Available (SeloD)**, **Functional (SeloF)**, **Susta
 | **Claim #2** | `./run_claim2.sh` | 22 s | idem |
 | **Claim #3** | `./run_claim3.sh` | 0.04 s | idem |
 
-The second column is the one to plan around: on a machine with an empty `uv` cache and no
+The last column is the one to plan around: on a machine with an empty `uv` cache and no
 model downloaded, the whole path above is dominated by those two downloads, and the first
 claim you run also fetches and builds the companion repository (~7 GB more). Everything
 after that is seconds. `./cleanup.sh` gives all of it back.
 
 ## Dependencies
 
-- **Python packages** are pinned to exact versions in the committed [`uv.lock`](uv.lock): PyTorch 2.11 (cu128), Transformers 5.12, Sentence-Transformers 5.6, GLiClass 0.1.18 and pandas. `uv sync` installs exactly those; no `pip` step is involved.
-- **System tools:** `git`, `curl` and `uv`; no Docker. The installation section below fetches `uv` if it is missing, and every script checks all three before doing any work, printing the install command for the package manager it finds.
+- **Python packages** are pinned to exact versions in the committed [`uv.lock`](uv.lock): PyTorch 2.11.0+cu128, Transformers 5.12.1, Sentence-Transformers 5.6.0, GLiClass 0.1.18, pandas 3.0.3 and numpy 2.5.0, on Python ≥ 3.11. `uv sync` installs exactly those, all as prebuilt wheels; no `pip` step and no compiler are involved.
+- **System tools:** `git`, `curl` and `uv` ≥ 0.8.4 (see [Basic information](#basic-information)); no Docker. The installation section below fetches `uv` if it is missing, and every script checks all three before doing any work, printing the install command for the package manager it finds.
 
   ```bash
   sudo apt-get update && sudo apt-get install -y git curl   # Debian, Ubuntu
@@ -127,8 +151,8 @@ One command. It runs the offline unit suite and then classifies the bundled samp
 ./minimal_test.sh
 ```
 
-- **Expected time:** 32 s measured with the checkpoint already cached. The first run also downloads it (~0.8 GB).
-- **Expected resources:** 1.6 GB peak RAM measured, ~1 GB disk beyond the environment. No GPU required.
+- **Expected time:** 32 s on Machine B with the checkpoint already cached. The first run also downloads it (~0.8 GB).
+- **Expected resources:** 1.6 GB peak RAM on Machine B, ~1 GB disk beyond the environment. No GPU required.
 - **Expected result:** the suite passes, five tickets are classified, and the run ends in `MINIMAL TEST: PASSED`:
 
 ```text
@@ -143,6 +167,193 @@ categories: {'CAT5': 5}
 MINIMAL TEST: PASSED
 ```
 
+## Using it on your own tickets
+
+Nothing in the tool is tied to the evaluation corpus: `classify` reads a CSV, and every column
+name is a flag. This section is the whole contract, and the commands below run as written.
+
+### The input file
+
+One row per ticket. Only the text column has to exist:
+
+| What | Flag | Default column name | Required |
+|---|---|---|---|
+| ticket text | `--text-column` | `conteudo` | yes |
+| ticket identifier | `--id-column` | `incidente_id`, else `id`, else the row number | no |
+| category label | `--label-column` | `categoria` | only in a labeled reference file |
+
+Any other column is ignored, and the input file is never written to. `--text-column` and
+`--id-column` apply to the file being classified *and* to a `--memory` reference file, so give
+the two files the same column names. Two things happen to the text as it loads: anonymization
+tags of the form `[EMAIL_ADDRESS_f6f7086365]` collapse to `<EMAIL>` (those hashes carry no
+signal and eat the encoder's 512-token window), and runs of spaces and tabs collapse to one.
+Nothing is deleted. Ticket text in any language works: the corpus behind the paper is in
+Portuguese, while the category hypotheses the engines score against are English by default.
+
+In a labeled file, every label must be one of the twelve NIST SP 800-61r3-derived codes —
+anything else is rejected at load time, naming the offending row, as is an empty text cell;
+repeated identifiers are dropped, keeping the first occurrence.
+
+| Code | Category | Code | Category |
+|---|---|---|---|
+| `CAT1` | account compromise | `CAT7` | social engineering |
+| `CAT2` | malware | `CAT8` | physical incident |
+| `CAT3` | denial of service attack | `CAT9` | unauthorized modification |
+| `CAT4` | data leak | `CAT10` | misuse of resources |
+| `CAT5` | vulnerability exploitation | `CAT11` | third-party incident |
+| `CAT6` | insider abuse | `CAT12` | intrusion attempt |
+
+### Day zero: no labeled data
+
+Point the tool at your file. The column names here are deliberately not the defaults, to show
+where the flags go:
+
+```bash
+cat > my_tickets.csv <<'CSV'
+ticket_id,body
+OPS-1001,"Assunto: ransomware no servidor de arquivos do setor financeiro. Durante a madrugada os compartilhamentos foram criptografados e um bilhete de resgate foi deixado em cada diretorio. O antivirus registrou a execucao de um binario desconhecido na estacao de um usuario administrativo."
+OPS-1002,"Assunto: varredura de portas originada de 203.0.113.7. O firewall de borda bloqueou tentativas repetidas de conexao na porta TCP 22 em toda a faixa /24 ao longo de duas horas. Nenhum acesso foi concluido com sucesso."
+OPS-1003,"Assunto: usuarios recebendo mensagens falsas em nome do diretor financeiro. Dois funcionarios relataram e-mails pedindo transferencia urgente, com dominio parecido com o da instituicao. Nenhum pagamento foi realizado."
+CSV
+
+uv run zerolinc classify --input my_tickets.csv \
+  --text-column body --id-column ticket_id \
+  --engine zeroshot --output my_predictions.csv
+```
+
+```text
+3 tickets classified -> my_predictions.csv
+engines: {'zeroshot': 3}
+categories: {'CAT5': 3}
+```
+
+```csv
+incident_id,category,confidence,engine
+OPS-1001,CAT5,0.9872,zeroshot
+OPS-1002,CAT5,0.9907,zeroshot
+OPS-1003,CAT5,0.88,zeroshot
+```
+
+Three tickets, one answer: that is the honest day-zero picture, and the reason the paper reports
+the zero-shot engines separately from the headline. On the evaluation corpus this same default
+engine answers `CAT5` for 163 of 182 tickets and lands at 67.0% accuracy against a 63.4%
+majority-class floor — the record Claim #3 reads. Two ways out, in increasing order of what they
+ask of you.
+
+**A stronger zero-shot engine.** `--engine zeroshot-max` swaps the fast GLiClass model for the
+DeBERTa-v3-large NLI cross-encoder, the configuration that tops the grid at 70.9% (Claim #2).
+Same command, several times slower, and a ~0.9 GB checkpoint on first use. On the three tickets
+above it does separate them:
+
+```csv
+incident_id,category,confidence,engine
+OPS-1001,CAT2,0.7994,zeroshot-max
+OPS-1002,CAT11,0.3182,zeroshot-max
+OPS-1003,CAT7,0.4097,zeroshot-max
+```
+
+Malware and social engineering are right; the blocked port scan should have been `CAT12`, not a
+third-party incident.
+
+### With a labeled history: the instance-memory engine
+
+This is the 90.8% path of Claim #1, and it is the reason to keep your closed tickets. Build the
+reference index once from tickets you have already categorized:
+
+```bash
+cat > my_history.csv <<'CSV'
+ticket_id,body,category
+H-001,"Assunto: ransomware no servidor de arquivos. Compartilhamentos criptografados e bilhete de resgate deixado em cada diretorio.",CAT2
+H-002,"Assunto: trojan detectado na estacao de trabalho. O antivirus removeu um binario malicioso baixado por e-mail.",CAT2
+H-003,"Assunto: varredura de portas originada de um IP externo. Firewall bloqueou tentativas repetidas na porta 22.",CAT12
+H-004,"Assunto: tentativas de forca bruta contra o SSH, todas bloqueadas pelo firewall de borda.",CAT12
+H-005,"Assunto: e-mail falso em nome do diretor financeiro pedindo transferencia urgente.",CAT7
+H-006,"Assunto: mensagem fraudulenta pedindo credenciais dos usuarios, dominio parecido com o da instituicao.",CAT7
+CSV
+
+uv run zerolinc train --memory my_history.csv \
+  --text-column body --id-column ticket_id --label-column category \
+  --model-out my_index.npz
+```
+
+```text
+index built: 6 references (Qwen/Qwen3-Embedding-0.6B) -> my_index.npz
+```
+
+`train` updates no weights: it embeds the reference tickets once and stores the vectors, their
+labels and their identifiers, so later runs skip re-embedding. Then classify against it:
+
+```bash
+uv run zerolinc classify --input my_tickets.csv \
+  --text-column body --id-column ticket_id \
+  --model my_index.npz --engine auto --output my_predictions.csv
+```
+
+```csv
+incident_id,category,confidence,engine
+OPS-1001,CAT2,0.8365,knn
+OPS-1002,CAT12,0.8367,knn
+OPS-1003,CAT7,0.8581,knn
+```
+
+Six labeled tickets already move all three to the right category; the paper's 90.8% comes from
+89 of them. To try the idea without building an index, hand the labeled file to `classify`
+directly with `--memory my_history.csv --label-column category`: same predictions, re-embedded
+on every run.
+
+Under `--engine auto`, a ticket whose nearest reference is below `--sim-threshold` (0.75) is not
+forced onto the memory. It is routed to the zero-shot engine and marked as such in the output, so
+an incident type your history has never seen stays visible instead of being silently pulled onto
+the closest label. Add one more ticket, a break-in at a server room, which the six-ticket history
+above has no analogue for:
+
+```text
+OPS-2001,"Assunto: furto de equipamento na sala de servidores. A porta foi arrombada durante a madrugada e dois switches foram levados."
+```
+
+```csv
+incident_id,category,confidence,engine
+OPS-2001,CAT5,0.961,zeroshot-fallback
+```
+
+The `engine` column is the useful part here: the label is the zero-shot engine's, with the
+accuracy that implies. The fix is to add a labeled example of the new type to the reference
+file, not to lower the threshold.
+
+### What comes out
+
+One row per input row, in input order, to `predictions.csv` or wherever `--output` points:
+
+| Column | Meaning |
+|---|---|
+| `incident_id` | the identifier from `--id-column`, or the row number if the file has none |
+| `category` | one of `CAT1`–`CAT12` |
+| `confidence` | cosine similarity to the nearest reference for `knn`, a normalized label score for the zero-shot engines. The two are not on the same scale and do not compare across engines |
+| `engine` | which engine produced this row: `zeroshot`, `zeroshot-max`, `embed`, `rerank`, `knn` or `zeroshot-fallback` |
+
+No ticket text is written to the output, by construction.
+
+### Engines and knobs
+
+| `--engine` | Needs labels | What it is |
+|---|---|---|
+| `auto` (default) | no | `knn` when `--memory` or `--model` is given, with the per-ticket fallback above; plain `zeroshot` otherwise |
+| `zeroshot` | no | GLiClass `gliclass-modern-base-v3.0`, the fast default, and the engine Claim #3 times |
+| `zeroshot-max` | no | DeBERTa-v3-large NLI cross-encoder, the grid's best configuration (Claim #2) |
+| `embed` | no | Qwen3-Embedding-0.6B, scoring the ticket against the verbalized categories |
+| `rerank` | no | Qwen3-Reranker-0.6B, same idea with a cross-encoder reranker |
+| `knn` | yes | similarity-weighted vote of the `--k` nearest labeled tickets (Claim #1); errors out without `--memory` or `--model` |
+
+`--k` (default 3) and `--sim-threshold` (default 0.75) tune the memory engine, `--batch-size`
+(default 8) trades memory for speed, and `--embedding-model` (default
+`Qwen/Qwen3-Embedding-0.6B`) changes the encoder used by `train` and by `--memory`. Checkpoints
+are downloaded once into the HuggingFace cache, so after the first run of an engine nothing
+touches the network; `HF_HUB_CACHE` chooses where they land.
+
+Adapting the tool to a taxonomy that is not the NIST one is an edit to
+[`verbalizer.py`](src/zerolinc/verbalizer.py), where the categories, their descriptions and the
+hypothesis templates live as data: no other module names a category.
+
 ## Experiments
 
 > ### READ THIS BEFORE RUNNING ANY EXPERIMENT
@@ -150,7 +361,7 @@ MINIMAL TEST: PASSED
 > **Three claims, one command each, none of them requiring a GPU or the incident corpus.**
 >
 > - Every claim prints the paper's value beside the one it produced and exits non-zero on a mismatch.
-> - Each block names the source of its numbers: measured on your machine, or read from the committed run of record. Claim #1 measures live only if you obtained the corpus, which is not ours to redistribute.
+> - Each block names the source of its numbers: measured on your machine, or read from the committed run of record, which was produced on Machine A. Claim #1 measures live only if you obtained the corpus, which is not ours to redistribute.
 > - A GPU changes nothing you type. It only makes the live paths faster.
 
 ### Claim #1: the instance-memory engine reaches 90.8% mean test accuracy from 89 labeled references, with no gradient training
@@ -164,7 +375,7 @@ MINIMAL TEST: PASSED
 ```
 
 - **Flags:** none. Place `data/185_incidentes_anon.csv` in the fetched companion repository to switch to the live path.
-- **Expected time:** 1.9 s from the run of record, plus a one-time clone of the companion repository on the first claim you run. About 3 minutes re-measured on a GPU, 15 on CPU.
+- **Expected time:** 1.9 s on Machine B to verify the run of record, plus a one-time clone of the companion repository on the first claim you run. About 3 minutes re-measured on a GPU, 15 on CPU.
 - **Expected resources:** ~4 GB RAM. GPU optional, network only for the first fetch.
 - **Expected result:**
 
@@ -205,7 +416,7 @@ verifying against the committed run of record instead.
 ```
 
 - **Flags:** none.
-- **Expected time:** 22 s measured. Deterministic.
+- **Expected time:** 22 s on Machine B. Deterministic, and independent of the machine it runs on.
 - **Expected resources:** ~2 GB RAM, ~1 GB disk. No GPU, no corpus.
 - **Expected result:**
 
@@ -231,7 +442,7 @@ verifying against the committed run of record instead.
 ```
 
 - **Flags:** `SKIP_LIVE=1 ./run_claim3.sh` forces the committed-record path even when a GPU is present.
-- **Expected time:** 0.04 s measured.
+- **Expected time:** 0.04 s on Machine B, because the block below is read, not re-measured.
 - **Expected resources:** ~4 GB RAM, ~1 GB VRAM on the live path.
 - **Expected result:**
 
@@ -247,6 +458,11 @@ verifying against the committed run of record instead.
   Expected: < 60 s, < 3 Wh, accuracy > 60%  →  OK
 ══════════════════════════════════════════════════════════════
 ```
+
+The 7.7 s, the 0.329 Wh and the 0.9 GB of VRAM are Machine A's, recorded when the campaign ran
+this engine over the corpus; the line says `(committed run record)` to make that explicit. They
+do not change with the machine you verify them on. Only with the corpus in place and a GPU
+present does the script re-time the run locally, and then the line reads `(measured live now)`.
 
 ## Cleaning up
 
