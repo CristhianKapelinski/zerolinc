@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 # The evaluation run of record lives in the companion repository, pinned to the exact
 # commit this artifact was evaluated at: a later change there cannot alter what you
 # reproduce here.
-BENCH_REPO="${ZEROLINC_BENCHMARK_REPO:-https://gitlab.com/cristhianavila.aluno/zerolinc-benchmark}"
+BENCH_REPO="${ZEROLINC_BENCHMARK_REPO:-https://github.com/CristhianKapelinski/zerolinc-benchmark}"
 BENCH_COMMIT="${ZEROLINC_BENCHMARK_COMMIT:-37ef42fd73a3685482e40d63e647abf44769dd6d}"
 
 for t in git uv; do

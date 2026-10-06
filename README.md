@@ -47,7 +47,7 @@ run_claim{1,2,3}.sh      one script per paper claim
 cleanup.sh               removes everything a run created
 ```
 
-The measurement study behind the tool lives in the companion repository [zerolinc-benchmark](https://gitlab.com/cristhianavila.aluno/zerolinc-benchmark): the full grid of 292 evaluation runs, the committed run of record, and the selection protocol. The claim scripts clone it automatically at a pinned commit; you never need to visit it.
+The measurement study behind the tool lives in the companion repository [zerolinc-benchmark](https://github.com/CristhianKapelinski/zerolinc-benchmark): the full grid of 292 evaluation runs, the committed run of record, and the selection protocol. The claim scripts clone it automatically at a pinned commit; you never need to visit it.
 
 ## Considered seals
 
@@ -136,7 +136,7 @@ after that is seconds. `./cleanup.sh` gives all of it back.
 Keep the clone and the `cd` on separate lines: chained with `&&`, a clone that fails because the directory already exists silently skips the `cd`, and every command after it runs in the parent directory.
 
 ```bash
-git clone https://gitlab.com/cristhianavila.aluno/zerolinc
+git clone https://github.com/CristhianKapelinski/zerolinc
 cd zerolinc
 curl -LsSf https://astral.sh/uv/install.sh | sh    # skip if uv is already installed
 export PATH="$HOME/.local/bin:$PATH"   # where the installer puts uv; the current shell needs telling
